@@ -1,14 +1,14 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
+import { db } from './db';
+import { sql } from 'drizzle-orm';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
   credentials: true
@@ -16,8 +16,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check route
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -25,22 +24,14 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// Welcome route
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   res.json({
     message: 'Welcome to Trello Clone API',
     version: '1.0.0',
+    database: 'PostgreSQL with Drizzle ORM',
     endpoints: {
-      health: '/health',
-      api: '/api'
+      health: '/health'
     }
-  });
-});
-
-// API routes placeholder
-app.use('/api', (req: Request, res: Response) => {
-  res.json({
-    message: 'API endpoints will be added here'
   });
 });
 
@@ -53,7 +44,7 @@ app.use((req: Request, res: Response) => {
 });
 
 // Error handler
-app.use((err: Error, req: Request, res: Response, next: any) => {
+app.use((err: Error, _req: Request, res: Response, _next: any) => {
   console.error(err.stack);
   res.status(500).json({
     error: 'Internal Server Error',
@@ -61,11 +52,26 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
   });
 });
 
+// Database connection check
+async function checkDatabaseConnection() {
+  try {
+    await db.execute(sql`SELECT 1`);
+    console.log('✅ Database connected successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    return false;
+  }
+}
+
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+  
+  // Check database connection
+  await checkDatabaseConnection();
 });
 
 export default app;
