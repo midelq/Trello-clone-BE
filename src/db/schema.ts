@@ -43,8 +43,26 @@ export const cards = pgTable('cards', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
+export const activities = pgTable('activities', {
+  id: serial('id').primaryKey(),
+  type: text('type').notNull(), // 'card_created', 'card_moved', 'list_created', etc.
+  description: text('description').notNull(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  boardId: integer('board_id')
+    .notNull()
+    .references(() => boards.id, { onDelete: 'cascade' }),
+  cardId: integer('card_id')
+    .references(() => cards.id, { onDelete: 'cascade' }),
+  listId: integer('list_id')
+    .references(() => lists.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
-  boards: many(boards)
+  boards: many(boards),
+  activities: many(activities)
 }));
 
 export const boardsRelations = relations(boards, ({ one, many }) => ({
@@ -52,7 +70,8 @@ export const boardsRelations = relations(boards, ({ one, many }) => ({
     fields: [boards.ownerId],
     references: [users.id]
   }),
-  lists: many(lists)
+  lists: many(lists),
+  activities: many(activities)
 }));
 
 export const listsRelations = relations(lists, ({ one, many }) => ({
@@ -60,12 +79,33 @@ export const listsRelations = relations(lists, ({ one, many }) => ({
     fields: [lists.boardId],
     references: [boards.id]
   }),
-  cards: many(cards)
+  cards: many(cards),
+  activities: many(activities)
 }));
 
-export const cardsRelations = relations(cards, ({ one }) => ({
+export const cardsRelations = relations(cards, ({ one, many }) => ({
   list: one(lists, {
     fields: [cards.listId],
+    references: [lists.id]
+  }),
+  activities: many(activities)
+}));
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id]
+  }),
+  board: one(boards, {
+    fields: [activities.boardId],
+    references: [boards.id]
+  }),
+  card: one(cards, {
+    fields: [activities.cardId],
+    references: [cards.id]
+  }),
+  list: one(lists, {
+    fields: [activities.listId],
     references: [lists.id]
   })
 }));
@@ -81,4 +121,7 @@ export type NewList = typeof lists.$inferInsert;
 
 export type Card = typeof cards.$inferSelect;
 export type NewCard = typeof cards.$inferInsert;
+
+export type Activity = typeof activities.$inferSelect;
+export type NewActivity = typeof activities.$inferInsert;
 
