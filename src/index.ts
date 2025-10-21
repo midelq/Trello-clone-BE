@@ -5,6 +5,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
+import authRoutes from './routes/auth.routes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
@@ -30,7 +34,12 @@ app.get('/', (_req: Request, res: Response) => {
     version: '1.0.0',
     database: 'PostgreSQL with Drizzle ORM',
     endpoints: {
-      health: '/health'
+      health: '/health',
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+        me: 'GET /api/auth/me (protected)'
+      }
     }
   });
 });
