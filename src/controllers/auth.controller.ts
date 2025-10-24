@@ -28,16 +28,14 @@ const generateToken = (userId: number, email: string, fullName: string): string 
   return jwt.sign(
     { userId, email, fullName },
     jwtSecret,
-    { expiresIn: '7d' } // Token expires in 7 days
+    { expiresIn: '7d' } 
   );
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Validate request body
     const validatedData = registerSchema.parse(req.body);
 
-    // Check if user already exists
     const existingUser = await db
       .select()
       .from(users)

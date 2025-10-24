@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-// Extend Express Request type to include user
 declare global {
   namespace Express {
     interface Request {
@@ -20,7 +19,6 @@ export const authMiddleware = (
   next: NextFunction
 ): void => {
   try {
-    // Get token from header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -31,10 +29,8 @@ export const authMiddleware = (
       return;
     }
 
-    // Extract token (remove "Bearer " prefix)
     const token = authHeader.substring(7);
 
-    // Verify token
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
       throw new Error('JWT_SECRET is not defined in environment variables');
@@ -46,7 +42,6 @@ export const authMiddleware = (
       fullName: string;
     };
 
-    // Attach user info to request
     req.user = decoded;
 
     next();
