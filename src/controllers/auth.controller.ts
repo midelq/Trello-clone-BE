@@ -18,7 +18,6 @@ const loginSchema = z.object({
   password: z.string()
 });
 
-// Generate JWT token
 const generateToken = (userId: number, email: string, fullName: string): string => {
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
@@ -28,7 +27,7 @@ const generateToken = (userId: number, email: string, fullName: string): string 
   return jwt.sign(
     { userId, email, fullName },
     jwtSecret,
-    { expiresIn: '7d' } 
+    { expiresIn: '1d' } 
   );
 };
 
@@ -50,7 +49,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
     // Create user
@@ -101,7 +99,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Validate request body
     const validatedData = loginSchema.parse(req.body);
 
     // Find user
@@ -166,7 +163,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const me = async (req: Request, res: Response): Promise<void> => {
   try {
-    // User info is attached by authMiddleware
     if (!req.user) {
       res.status(401).json({
         error: 'Unauthorized',
@@ -175,7 +171,6 @@ export const me = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Get full user info from database
     const user = await db
       .select({
         id: users.id,
