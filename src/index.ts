@@ -6,6 +6,7 @@ import cors from 'cors';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import authRoutes from './routes/auth.routes';
+import boardRoutes from './routes/board.routes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/boards', boardRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
@@ -39,6 +41,13 @@ app.get('/', (_req: Request, res: Response) => {
         register: 'POST /api/auth/register',
         login: 'POST /api/auth/login',
         me: 'GET /api/auth/me (protected)'
+      },
+      boards: {
+        getAll: 'GET /api/boards (protected)',
+        getById: 'GET /api/boards/:id (protected)',
+        create: 'POST /api/boards (protected)',
+        update: 'PUT /api/boards/:id (protected)',
+        delete: 'DELETE /api/boards/:id (protected)'
       }
     }
   });
