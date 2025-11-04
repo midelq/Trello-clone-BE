@@ -7,6 +7,7 @@ import { db } from './db';
 import { sql } from 'drizzle-orm';
 import authRoutes from './routes/auth.routes';
 import boardRoutes from './routes/board.routes';
+import listRoutes from './routes/list.routes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/boards', boardRoutes);
+app.use('/api/lists', listRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
@@ -48,6 +50,13 @@ app.get('/', (_req: Request, res: Response) => {
         create: 'POST /api/boards (protected)',
         update: 'PUT /api/boards/:id (protected)',
         delete: 'DELETE /api/boards/:id (protected)'
+      },
+      lists: {
+        getByBoard: 'GET /api/lists/board/:boardId (protected)',
+        getById: 'GET /api/lists/:id (protected)',
+        create: 'POST /api/lists (protected)',
+        update: 'PUT /api/lists/:id (protected)',
+        delete: 'DELETE /api/lists/:id (protected)'
       }
     }
   });
