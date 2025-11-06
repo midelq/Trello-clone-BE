@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { lists, boards } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte, lte, sql } from 'drizzle-orm';
 
 // Validation schemas
 const createListSchema = z.object({
@@ -190,6 +190,20 @@ export const createList = async (req: Request, res: Response): Promise<void> => 
       position = existingLists.length > 0 
         ? Math.max(...existingLists.map(l => l.position)) + 1 
         : 0;
+    } else {
+      // If position is provided, shift all lists at or after this position
+      await db
+        .update(lists)
+        .set({ 
+          position: sql`${lists.position} + 1`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(lists.boardId, validatedData.boardId),
+            gte(lists.position, position)
+          )
+        );
     }
 
     const newList = await db
@@ -278,6 +292,44 @@ export const updateList = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    if (validatedData.position !== undefined) {
+      const oldPosition = existingList[0].position;
+      const newPosition = validatedData.position;
+
+      if (oldPosition !== newPosition) {
+        if (newPosition > oldPosition) {
+          await db
+            .update(lists)
+            .set({ 
+              position: sql`${lists.position} - 1`,
+              updatedAt: new Date()
+            })
+            .where(
+              and(
+                eq(lists.boardId, existingList[0].boardId),
+                gte(lists.position, oldPosition + 1),
+                lte(lists.position, newPosition)
+              )
+            );
+        } 
+        else if (newPosition < oldPosition) {
+          await db
+            .update(lists)
+            .set({ 
+              position: sql`${lists.position} + 1`,
+              updatedAt: new Date()
+            })
+            .where(
+              and(
+                eq(lists.boardId, existingList[0].boardId),
+                gte(lists.position, newPosition),
+                lte(lists.position, oldPosition - 1)
+              )
+            );
+        }
+      }
+    }
+
     const updatedList = await db
       .update(lists)
       .set({
@@ -363,9 +415,25 @@ export const deleteList = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    const deletedPosition = existingList[0].position;
+    const boardId = existingList[0].boardId;
+
     await db
       .delete(lists)
       .where(eq(lists.id, listId));
+
+    await db
+      .update(lists)
+      .set({ 
+        position: sql`${lists.position} - 1`,
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(lists.boardId, boardId),
+          gte(lists.position, deletedPosition + 1)
+        )
+      );
 
     res.status(200).json({
       message: 'List deleted successfully'
