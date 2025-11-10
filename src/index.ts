@@ -8,6 +8,7 @@ import { sql } from 'drizzle-orm';
 import authRoutes from './routes/auth.routes';
 import boardRoutes from './routes/board.routes';
 import listRoutes from './routes/list.routes';
+import cardRoutes from './routes/card.routes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/lists', listRoutes);
+app.use('/api/cards', cardRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
@@ -57,6 +59,13 @@ app.get('/', (_req: Request, res: Response) => {
         create: 'POST /api/lists (protected)',
         update: 'PUT /api/lists/:id (protected)',
         delete: 'DELETE /api/lists/:id (protected)'
+      },
+      cards: {
+        getByList: 'GET /api/cards/list/:listId (protected)',
+        getById: 'GET /api/cards/:id (protected)',
+        create: 'POST /api/cards (protected)',
+        update: 'PUT /api/cards/:id (protected)',
+        delete: 'DELETE /api/cards/:id (protected)'
       }
     }
   });
