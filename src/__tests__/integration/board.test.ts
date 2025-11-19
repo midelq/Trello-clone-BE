@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../../index';
-import { cleanDatabase } from '../helpers/testDb';
+import { cleanDatabase, closeDbConnection } from '../helpers/testDb';
 import { createTestUser, createTestBoard, generateTestToken } from '../helpers/testFactories';
 import type { User, Board } from '../../db/schema';
 
@@ -11,6 +11,7 @@ describe('Board Integration Tests', () => {
 
   afterAll(async () => {
     await cleanDatabase();
+    await closeDbConnection();
   });
 
   describe('GET /api/boards - Get All Boards', () => {

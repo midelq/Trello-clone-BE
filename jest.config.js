@@ -12,7 +12,7 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   verbose: true,
-  forceExit: true,
+  // Removed forceExit: true - we now properly close connections
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,

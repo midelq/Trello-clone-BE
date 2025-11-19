@@ -4,6 +4,7 @@ import * as schema from './schema';
 
 // Lazy initialization
 let _db: ReturnType<typeof drizzle> | null = null;
+let _client: ReturnType<typeof postgres> | null = null;
 
 function getDb() {
   if (_db) return _db;
@@ -16,14 +17,14 @@ function getDb() {
   }
 
   // Create postgres client
-  const client = postgres(connectionString, {
+  _client = postgres(connectionString, {
     max: 10, // Maximum number of connections
     idle_timeout: 20,
     connect_timeout: 10
   });
 
   // Create drizzle instance
-  _db = drizzle(client, { schema });
+  _db = drizzle(_client, { schema });
   return _db;
 }
 
@@ -33,6 +34,15 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
     return (getDb() as any)[prop];
   }
 });
+
+// Close database connection (useful for tests and graceful shutdown)
+export async function closeDatabase(): Promise<void> {
+  if (_client) {
+    await _client.end();
+    _client = null;
+    _db = null;
+  }
+}
 
 // Export schema for use in other files
 export { schema };

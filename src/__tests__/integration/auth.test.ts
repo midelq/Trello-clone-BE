@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../../index';
-import { cleanDatabase } from '../helpers/testDb';
+import { cleanDatabase, closeDbConnection } from '../helpers/testDb';
 import { createTestUser, generateTestToken } from '../helpers/testFactories';
 import type { User } from '../../db/schema';
 
@@ -11,6 +11,7 @@ describe('Auth Integration Tests', () => {
 
   afterAll(async () => {
     await cleanDatabase();
+    await closeDbConnection();
   });
 
   describe('POST /api/auth/register - User Registration', () => {

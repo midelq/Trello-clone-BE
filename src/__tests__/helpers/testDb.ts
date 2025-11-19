@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { db } from '../../db';
+import { db, closeDatabase } from '../../db';
 
 
 export async function cleanDatabase(): Promise<void> {
@@ -26,7 +26,7 @@ export async function checkTestDbConnection(): Promise<boolean> {
 
 export async function closeDbConnection(): Promise<void> {
   try {
-   
+    await closeDatabase();
     console.log('Test database connections closed');
   } catch (error) {
     console.error('Error closing database connection:', error);
