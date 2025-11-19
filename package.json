@@ -11,7 +11,17 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "drizzle-kit migrate",
-    "db:clear": "tsx src/scripts/clearDb.ts"
+    "db:clear": "tsx src/scripts/clearDb.ts",
+    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test:auth": "cross-env NODE_ENV=test jest --runInBand auth.test",
+    "test:board": "cross-env NODE_ENV=test jest --runInBand board.test",
+    "test:card": "cross-env NODE_ENV=test jest --runInBand card.test",
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage --runInBand",
+    "test:integration": "cross-env NODE_ENV=test jest --testPathPattern=integration --runInBand",
+    "test:db:up": "docker-compose -f docker-compose.test.yml up -d",
+    "test:db:down": "docker-compose -f docker-compose.test.yml down",
+    "test:db:clean": "docker-compose -f docker-compose.test.yml down -v"
   },
   "keywords": [
     "express",
@@ -36,10 +46,16 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.10.6",
     "@types/pg": "^8.15.5",
+    "@types/supertest": "^6.0.3",
+    "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.5",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.5",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }

@@ -100,15 +100,17 @@ async function checkDatabaseConnection() {
   }
 }
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  
-  // Check database connection
-  await checkDatabaseConnection();
-});
+// Start server only if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, async () => {
+    console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    
+    // Check database connection
+    await checkDatabaseConnection();
+  });
+}
 
 export default app;
 
