@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getAllBoards,
   getBoardById,
+  getBoardFull,
   createBoard,
   updateBoard,
   deleteBoard
@@ -18,6 +19,9 @@ router.get('/', getAllBoards);
 
 // GET /api/boards/:id - Get single board by ID
 router.get('/:id', getBoardById);
+
+// GET /api/boards/:id/full - Get full board with lists and cards
+router.get('/:id/full', getBoardFull);
 
 // POST /api/boards - Create new board
 router.post('/', createBoard);

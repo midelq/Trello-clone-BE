@@ -28,8 +28,12 @@ function getDb() {
   return _db;
 }
 
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+
+// ...
+
 // Export db getter
-export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+export const db = new Proxy({} as PostgresJsDatabase<typeof schema>, {
   get(_, prop) {
     return (getDb() as any)[prop];
   }

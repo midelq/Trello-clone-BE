@@ -114,6 +114,64 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+// Get full board with lists and cards
+export const getBoardFull = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User not authenticated'
+      });
+      return;
+    }
+
+    const boardId = parseInt(req.params.id);
+
+    if (isNaN(boardId)) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Invalid board ID'
+      });
+      return;
+    }
+
+    const board = await db.query.boards.findFirst({
+      where: and(
+        eq(boards.id, boardId),
+        eq(boards.ownerId, req.user.userId)
+      ),
+      with: {
+        lists: {
+          orderBy: (lists, { asc }) => [asc(lists.position)],
+          with: {
+            cards: {
+              orderBy: (cards, { asc }) => [asc(cards.position)]
+            }
+          }
+        }
+      }
+    });
+
+    if (!board) {
+      res.status(404).json({
+        error: 'Not Found',
+        message: 'Board not found or you do not have access'
+      });
+      return;
+    }
+
+    res.status(200).json({
+      board
+    });
+  } catch (error) {
+    console.error('Get full board error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to get full board details'
+    });
+  }
+};
+
 // Create new board
 export const createBoard = async (req: Request, res: Response): Promise<void> => {
   try {
