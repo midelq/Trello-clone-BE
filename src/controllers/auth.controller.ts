@@ -18,6 +18,11 @@ const loginSchema = z.object({
   password: z.string()
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters').max(100)
+});
+
 const generateToken = (userId: number, email: string, fullName: string): string => {
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
@@ -27,7 +32,7 @@ const generateToken = (userId: number, email: string, fullName: string): string 
   return jwt.sign(
     { userId, email, fullName },
     jwtSecret,
-    { expiresIn: '1d' } 
+    { expiresIn: '1d' }
   );
 };
 
@@ -201,4 +206,88 @@ export const me = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+export const changePassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User not authenticated'
+      });
+      return;
+    }
+
+    const validatedData = changePasswordSchema.parse(req.body);
+
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, req.user.userId))
+      .limit(1);
+
+    if (user.length === 0) {
+      res.status(404).json({
+        error: 'Not Found',
+        message: 'User not found'
+      });
+      return;
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      validatedData.currentPassword,
+      user[0].password
+    );
+
+    if (!isPasswordValid) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Current password is incorrect'
+      });
+      return;
+    }
+
+    const isSamePassword = await bcrypt.compare(
+      validatedData.newPassword,
+      user[0].password
+    );
+
+    if (isSamePassword) {
+      res.status(400).json({
+        error: 'Validation Error',
+        message: 'New password must be different from current password'
+      });
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
+
+    await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, req.user.userId));
+
+    res.status(200).json({
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        error: 'Validation Error',
+        message: 'Invalid input data',
+        details: error.issues
+      });
+      return;
+    }
+
+    console.error('Change password error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to change password'
+    });
+  }
+};
+
 
