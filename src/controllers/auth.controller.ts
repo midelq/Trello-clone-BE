@@ -75,11 +75,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Generate token
     const token = generateToken(newUser[0].id, newUser[0].email, newUser[0].fullName);
 
-    // Send welcome email (non-blocking)
-    emailService.sendWelcomeEmail(newUser[0].email, newUser[0].fullName)
-      .catch((error) => {
-        console.error('Error sending welcome email:', error);
-      });
+    // Send welcome email (awaiting it because Vercel freezes background tasks)
+    try {
+      await emailService.sendWelcomeEmail(newUser[0].email, newUser[0].fullName);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // We don't throw error here to allow registration to succeed even if email fails
+    }
 
     res.status(201).json({
       message: 'User registered successfully',
