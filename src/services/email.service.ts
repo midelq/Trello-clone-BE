@@ -78,11 +78,11 @@ class EmailService {
   async sendWelcomeEmail(userEmail: string, userName: string): Promise<boolean> {
     const html = `
       <!DOCTYPE html>
-      <html lang="uk">
+      <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Вітаємо в Trello Clone!</title>
+        <title>Welcome to Trello Clone!</title>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -172,31 +172,31 @@ class EmailService {
             <div class="logo">📋 Trello Clone</div>
           </div>
           
-          <h1>Вітаємо, ${userName}! 🎉</h1>
+          <h1>Welcome, ${userName}! 🎉</h1>
           
           <div class="content">
-            <p>Дякуємо за реєстрацію в Trello Clone!</p>
+            <p>Thanks for signing up for Trello Clone!</p>
             
             <div class="highlight">
-              <p class="highlight-text">✅ Ваша реєстрація пройшла успішно!</p>
+              <p class="highlight-text">✅ Your registration was successful!</p>
             </div>
             
-            <p>Тепер ви можете користуватися всіма можливостями нашого додатку:</p>
+            <p>Now you can use all the features of our application:</p>
             
             <div class="features">
-              <div class="feature-item">Створювати дошки для організації проектів</div>
-              <div class="feature-item">Додавати списки та картки завдань</div>
-              <div class="feature-item">Переміщувати картки між списками</div>
-              <div class="feature-item">Керувати своїми проектами ефективно</div>
+              <div class="feature-item">Create boards to organize projects</div>
+              <div class="feature-item">Add lists and task cards</div>
+              <div class="feature-item">Move cards between lists</div>
+              <div class="feature-item">Manage your projects effectively</div>
             </div>
             
-            <p>Ваш обліковий запис:</p>
+            <p>Your account:</p>
             <p><strong>Email:</strong> ${userEmail}</p>
           </div>
           
           <div class="footer">
-            <p>Це автоматичне повідомлення, будь ласка, не відповідайте на нього.</p>
-            <p>© 2025 Trello Clone. Всі права захищені.</p>
+            <p>This is an automated message, please do not reply.</p>
+            <p>© 2025 Trello Clone. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -205,7 +205,7 @@ class EmailService {
 
     return this.sendEmail({
       to: userEmail,
-      subject: '🎉 Вітаємо в Trello Clone! Реєстрація успішна',
+      subject: '🎉 Welcome to Trello Clone! Registration successful',
       html
     });
   }
