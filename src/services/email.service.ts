@@ -110,7 +110,7 @@ class EmailService {
             margin-bottom: 10px;
           }
           h1 {
-            color: #172b4d;
+            color: #1461e5ff;
             font-size: 24px;
             margin-bottom: 20px;
           }
