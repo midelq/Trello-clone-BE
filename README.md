@@ -2,6 +2,21 @@
 
 A RESTful API backend for the Trello Clone task management application. Built with Express.js, TypeScript, and PostgreSQL, this server provides authentication, board management, and real-time data persistence.
 
+## 🚀 Infrastructure & Deployment
+
+This backend is designed to be cloud-native and easily deployable.
+
+| Component | Service | Status |
+|-----------|---------|--------|
+| **API Server** | [Render](https://render.com/) / [Railway](https://railway.app/) | 🟢 Ready to Deploy |
+| **Database** | [Neon](https://neon.tech/) / PostgreSQL | 🟢 production-ready |
+
+**Key Features:**
+- **Stateless Architecture**: Perfect for serverless or containerized deployment.
+- **Environment Configuration**: strict separation of config from code using `.env`.
+- **Database Migrations**: Drizzle Kit for reliable schema updates in production.
+
+
 ## Tech Stack
 
 - **Runtime**: Node.js
