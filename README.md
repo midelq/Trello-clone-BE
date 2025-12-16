@@ -6,10 +6,10 @@ A RESTful API backend for the Trello Clone task management application. Built wi
 
 This backend is designed to be cloud-native and easily deployable.
 
-| Component | Service | Status |
-|-----------|---------|--------|
-| **API Server** | [Render](https://render.com/) / [Railway](https://railway.app/) | 🟢 Ready to Deploy |
-| **Database** | [Neon](https://neon.tech/) / PostgreSQL | 🟢 production-ready |
+| Component | Service | Status | Link |
+|-----------|---------|--------|------|
+| **API Server** | [Vercel](https://vercel.com/) | 🟢 Live | [**API Root**](https://trello-clone-be-beryl.vercel.app/) |
+| **Database** | [Neon](https://neon.tech/) | 🟢 Active | - |
 
 **Key Features:**
 - **Stateless Architecture**: Perfect for serverless or containerized deployment.
