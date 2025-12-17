@@ -16,6 +16,11 @@ This backend is designed to be cloud-native and easily deployable.
 - **Environment Configuration**: strict separation of config from code using `.env`.
 - **Database Migrations**: Drizzle Kit for reliable schema updates in production.
 
+## 🗄️ Database Schema
+
+The project uses a relational database structure designed for scalability and data integrity.
+
+![Database Schema](./assets/db-schema.png)
 
 ## Tech Stack
 
