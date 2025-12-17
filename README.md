@@ -35,6 +35,26 @@ The project uses a relational database structure designed for scalability and da
 - **Testing**: Jest
 - **Code Quality**: ESLint, TypeScript
 
+## 🐳 Docker Support
+
+You can run the entire application (Frontend + Backend) with a single command using Docker Compose.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+1. Start the application:
+```bash
+docker-compose up -d --build
+```
+
+2. Access the services:
+- **Frontend**: [http://localhost](http://localhost)
+- **Backend API**: [http://localhost:3000](http://localhost:3000)
+
+3. Stop the application:
+```bash
+docker-compose down
+```
+
 
 ## Installation
 
