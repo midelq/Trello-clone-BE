@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: trello-backend-app
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  frontend:
+    container_name: trello-frontend-app
+    build:
+      context: ../trello-clone
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - api
