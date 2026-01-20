@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { db } from '../db';
-import { boards } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { boardService } from '../services/board.service';
 
 // Validation schemas
 const createBoardSchema = z.object({
@@ -24,18 +22,9 @@ export const getAllBoards = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const userBoards = await db
-      .select({
-        id: boards.id,
-        title: boards.title,
-        ownerId: boards.ownerId,
-        createdAt: boards.createdAt,
-        updatedAt: boards.updatedAt
-      })
-      .from(boards)
-      .where(eq(boards.ownerId, req.user.userId));
+    const boards = await boardService.findAllByOwner(req.user.userId);
 
-    if (userBoards.length === 0) {
+    if (boards.length === 0) {
       res.status(200).json({
         boards: [],
         count: 0,
@@ -45,8 +34,8 @@ export const getAllBoards = async (req: Request, res: Response): Promise<void> =
     }
 
     res.status(200).json({
-      boards: userBoards,
-      count: userBoards.length
+      boards,
+      count: boards.length
     });
   } catch (error) {
     console.error('Get boards error:', error);
@@ -77,24 +66,9 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const board = await db
-      .select({
-        id: boards.id,
-        title: boards.title,
-        ownerId: boards.ownerId,
-        createdAt: boards.createdAt,
-        updatedAt: boards.updatedAt
-      })
-      .from(boards)
-      .where(
-        and(
-          eq(boards.id, boardId),
-          eq(boards.ownerId, req.user.userId)
-        )
-      )
-      .limit(1);
+    const board = await boardService.findByIdAndOwner(boardId, req.user.userId);
 
-    if (board.length === 0) {
+    if (!board) {
       res.status(404).json({
         error: 'Not Found',
         message: 'Board not found or you do not have access'
@@ -103,7 +77,7 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
     }
 
     res.status(200).json({
-      board: board[0]
+      board
     });
   } catch (error) {
     console.error('Get board error:', error);
@@ -135,22 +109,7 @@ export const getBoardFull = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const board = await db.query.boards.findFirst({
-      where: and(
-        eq(boards.id, boardId),
-        eq(boards.ownerId, req.user.userId)
-      ),
-      with: {
-        lists: {
-          orderBy: (lists, { asc }) => [asc(lists.position)],
-          with: {
-            cards: {
-              orderBy: (cards, { asc }) => [asc(cards.position)]
-            }
-          }
-        }
-      }
-    });
+    const board = await boardService.findFullByIdAndOwner(boardId, req.user.userId);
 
     if (!board) {
       res.status(404).json({
@@ -185,23 +144,11 @@ export const createBoard = async (req: Request, res: Response): Promise<void> =>
 
     const validatedData = createBoardSchema.parse(req.body);
 
-    const newBoard = await db
-      .insert(boards)
-      .values({
-        title: validatedData.title,
-        ownerId: req.user.userId
-      })
-      .returning({
-        id: boards.id,
-        title: boards.title,
-        ownerId: boards.ownerId,
-        createdAt: boards.createdAt,
-        updatedAt: boards.updatedAt
-      });
+    const newBoard = await boardService.create(validatedData.title, req.user.userId);
 
     res.status(201).json({
       message: 'Board created successfully',
-      board: newBoard[0]
+      board: newBoard
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -244,19 +191,9 @@ export const updateBoard = async (req: Request, res: Response): Promise<void> =>
 
     const validatedData = updateBoardSchema.parse(req.body);
 
-    // Check if board exists and user is owner
-    const existingBoard = await db
-      .select()
-      .from(boards)
-      .where(
-        and(
-          eq(boards.id, boardId),
-          eq(boards.ownerId, req.user.userId)
-        )
-      )
-      .limit(1);
+    const updatedBoard = await boardService.update(boardId, req.user.userId, validatedData.title);
 
-    if (existingBoard.length === 0) {
+    if (!updatedBoard) {
       res.status(404).json({
         error: 'Not Found',
         message: 'Board not found or you do not have permission'
@@ -264,24 +201,9 @@ export const updateBoard = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const updatedBoard = await db
-      .update(boards)
-      .set({
-        title: validatedData.title,
-        updatedAt: new Date()
-      })
-      .where(eq(boards.id, boardId))
-      .returning({
-        id: boards.id,
-        title: boards.title,
-        ownerId: boards.ownerId,
-        createdAt: boards.createdAt,
-        updatedAt: boards.updatedAt
-      });
-
     res.status(200).json({
       message: 'Board updated successfully',
-      board: updatedBoard[0]
+      board: updatedBoard
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -322,29 +244,15 @@ export const deleteBoard = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Check if board exists and user is owner
-    const existingBoard = await db
-      .select()
-      .from(boards)
-      .where(
-        and(
-          eq(boards.id, boardId),
-          eq(boards.ownerId, req.user.userId)
-        )
-      )
-      .limit(1);
+    const isDeleted = await boardService.delete(boardId, req.user.userId);
 
-    if (existingBoard.length === 0) {
+    if (!isDeleted) {
       res.status(404).json({
         error: 'Not Found',
         message: 'Board not found or you do not have permission'
       });
       return;
     }
-
-    await db
-      .delete(boards)
-      .where(eq(boards.id, boardId));
 
     res.status(200).json({
       message: 'Board deleted successfully'
@@ -357,4 +265,3 @@ export const deleteBoard = async (req: Request, res: Response): Promise<void> =>
     });
   }
 };
-
