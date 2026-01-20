@@ -8,6 +8,7 @@ import {
   deleteBoard
 } from '../controllers/board.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { authorizeBoard } from '../middleware/authorize.middleware';
 
 const router = Router();
 
@@ -18,19 +19,19 @@ router.use(authMiddleware);
 router.get('/', getAllBoards);
 
 // GET /api/boards/:id - Get single board by ID
-router.get('/:id', getBoardById);
+router.get('/:id', authorizeBoard, getBoardById);
 
 // GET /api/boards/:id/full - Get full board with lists and cards
-router.get('/:id/full', getBoardFull);
+router.get('/:id/full', authorizeBoard, getBoardFull);
 
 // POST /api/boards - Create new board
 router.post('/', createBoard);
 
 // PUT /api/boards/:id - Update board
-router.put('/:id', updateBoard);
+router.put('/:id', authorizeBoard, updateBoard);
 
 // DELETE /api/boards/:id - Delete board
-router.delete('/:id', deleteBoard);
+router.delete('/:id', authorizeBoard, deleteBoard);
 
 export default router;
 
