@@ -8,21 +8,7 @@ import { eq } from 'drizzle-orm';
 import { emailService } from '../services/email.service';
 
 // Validation schemas
-const registerSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters').max(100)
-});
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string()
-});
-
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(6, 'New password must be at least 6 characters').max(100)
-});
+import { registerSchema, loginSchema, changePasswordSchema } from '../schemas/auth.schema';
 
 const generateToken = (userId: number, email: string, fullName: string): string => {
   const jwtSecret = process.env.JWT_SECRET;
