@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
 
 interface EmailOptions {
   to: string;
@@ -75,133 +77,24 @@ class EmailService {
     }
   }
 
+  private loadTemplate(name: string, variables: Record<string, string>): string {
+    try {
+      const templatePath = path.join(__dirname, '../templates/emails', `${name}.html`);
+      let html = fs.readFileSync(templatePath, 'utf-8');
+
+      for (const [key, value] of Object.entries(variables)) {
+        html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      }
+
+      return html;
+    } catch (error) {
+      console.error(`Failed to load email template: ${name}`, error);
+      return '';
+    }
+  }
+
   async sendWelcomeEmail(userEmail: string, userName: string): Promise<boolean> {
-    const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Trello Clone!</title>
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f5f7;
-          }
-          .container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-          }
-          .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #0079bf;
-            margin-bottom: 10px;
-          }
-          h1 {
-            color: #1461e5ff;
-            font-size: 24px;
-            margin-bottom: 20px;
-          }
-          .content {
-            color: #5e6c84;
-            font-size: 16px;
-            margin-bottom: 30px;
-          }
-          .highlight {
-            background-color: #e3fcef;
-            border-left: 4px solid #00c853;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-          }
-          .highlight-text {
-            color: #00875a;
-            font-weight: 600;
-            margin: 0;
-          }
-          .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #0079bf;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 600;
-            margin: 20px 0;
-          }
-          .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e1e4e8;
-            text-align: center;
-            color: #6b778c;
-            font-size: 14px;
-          }
-          .features {
-            margin: 30px 0;
-          }
-          .feature-item {
-            margin: 15px 0;
-            padding-left: 25px;
-            position: relative;
-          }
-          .feature-item:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #00c853;
-            font-weight: bold;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">📋 Trello Clone</div>
-          </div>
-          
-          <h1>Welcome, ${userName}! 🎉</h1>
-          
-          <div class="content">
-            <p>Thanks for signing up for Trello Clone!</p>
-            
-            <div class="highlight">
-              <p class="highlight-text">✅ Your registration was successful!</p>
-            </div>
-            
-            <p>Now you can use all the features of our application:</p>
-            
-            <div class="features">
-              <div class="feature-item">Create boards to organize projects</div>
-              <div class="feature-item">Add lists and task cards</div>
-              <div class="feature-item">Move cards between lists</div>
-              <div class="feature-item">Manage your projects effectively</div>
-            </div>
-            
-            <p>Your account:</p>
-            <p><strong>Email:</strong> ${userEmail}</p>
-          </div>
-          
-          <div class="footer">
-            <p>This is an automated message, please do not reply.</p>
-            <p>© 2025 Trello Clone. All rights reserved.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+    const html = this.loadTemplate('welcome', { userName, userEmail });
 
     return this.sendEmail({
       to: userEmail,
