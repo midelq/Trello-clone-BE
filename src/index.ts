@@ -10,8 +10,10 @@ import boardRoutes from './routes/board.routes';
 import listRoutes from './routes/list.routes';
 import cardRoutes from './routes/card.routes';
 
+import { env } from './config/env';
+
 const app: Application = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 // Configure CORS
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
@@ -20,7 +22,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {

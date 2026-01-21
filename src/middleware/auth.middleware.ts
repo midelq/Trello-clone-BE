@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { env } from '../config/env';
 
 declare global {
   namespace Express {
@@ -31,12 +32,8 @@ export const authMiddleware = (
 
     const token = authHeader.substring(7);
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new Error('JWT_SECRET is not defined in environment variables');
-    }
-
-    const decoded = jwt.verify(token, jwtSecret) as {
+    // Zod guarantees JWT_SECRET exists
+    const decoded = jwt.verify(token, env.JWT_SECRET) as {
       userId: number;
       email: string;
       fullName: string;

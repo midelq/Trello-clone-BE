@@ -2,6 +2,8 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
+import { env } from '../config/env';
+
 // Lazy initialization
 let _db: ReturnType<typeof drizzle> | null = null;
 let _client: ReturnType<typeof postgres> | null = null;
@@ -10,11 +12,8 @@ function getDb() {
   if (_db) return _db;
 
   // Get database connection string from environment variables
-  const connectionString = process.env.DATABASE_URL;
-
-  if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
+  // Zod guarantees DATABASE_URL exists and is a valid URL
+  const connectionString = env.DATABASE_URL;
 
   // Create postgres client
   _client = postgres(connectionString, {
