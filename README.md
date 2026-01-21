@@ -33,6 +33,7 @@ The project uses a relational database structure designed for scalability and da
 - **Validation**: Zod
 - **Password Security**: bcryptjs
 - **Testing**: Jest
+- **Logging**: Morgan
 - **Code Quality**: ESLint, TypeScript
 
 ## 🐳 Docker Support
