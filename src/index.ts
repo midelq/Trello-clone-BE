@@ -11,6 +11,7 @@ import listRoutes from './routes/list.routes';
 import cardRoutes from './routes/card.routes';
 
 import { env } from './config/env';
+import morgan from 'morgan';
 
 const app: Application = express();
 const PORT = env.PORT;
@@ -34,11 +35,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Handle preflight requests
-app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+if (env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  
+  app.use(morgan('combined'));
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
