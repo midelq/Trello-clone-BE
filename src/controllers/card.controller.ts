@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { cardService } from '../services/card.service';
 
-// Validation schemas
+import { activityService } from '../services/activity.service';
+import { listService } from '../services/list.service';
 const createCardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
   description: z.string().max(2000, 'Description must be less than 2000 characters').optional(),
@@ -94,6 +95,20 @@ export const createCard = async (req: Request, res: Response): Promise<void> => 
       position: validatedData.position
     });
 
+    if (req.user) {
+      const list = await listService.findById(validatedData.listId);
+      if (list) {
+        await activityService.logActivity({
+          type: 'card_created',
+          description: `Created card "${newCard.title}"`,
+          userId: req.user.userId,
+          boardId: list.boardId,
+          listId: list.id,
+          cardId: newCard.id
+        });
+      }
+    }
+
     res.status(201).json({
       message: 'Card created successfully',
       card: newCard
@@ -131,6 +146,12 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
 
     const validatedData = updateCardSchema.parse(req.body);
 
+    // Get current card state before update to detect changes if needed
+    // But since we want to log the RESULT, we do it after.
+
+    // We ideally should know if it moved lists.
+    // Let's assume just 'card_updated' or 'card_moved' 
+
     const updatedCard = await cardService.update(cardId, {
       title: validatedData.title,
       description: validatedData.description,
@@ -144,6 +165,31 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
         message: 'Card not found'
       });
       return;
+    }
+
+    if (req.user) {
+      const list = await listService.findById(updatedCard.listId);
+      if (list) {
+        let type: any = 'card_updated';
+        let description = `Updated card "${updatedCard.title}"`;
+
+        // Simple check: if listId was provided in body, assume move (even if same listId, technically a move op was requested)
+        // Or better: check if we actually moved lists?
+        // We'd need old state. For now, let's just log as updated/moved based on input.
+        if (validatedData.listId) {
+          type = 'card_moved';
+          description = `Moved card "${updatedCard.title}" to list "${list.title}"`;
+        }
+
+        await activityService.logActivity({
+          type,
+          description,
+          userId: req.user.userId,
+          boardId: list.boardId,
+          listId: list.id,
+          cardId: updatedCard.id
+        });
+      }
     }
 
     res.status(200).json({
@@ -181,14 +227,31 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    // Get card before delete to log activity
+    const card = await cardService.findById(cardId);
+
     const isDeleted = await cardService.delete(cardId);
 
-    if (!isDeleted) {
+    if (!isDeleted || !card) {
       res.status(404).json({
         error: 'Not Found',
         message: 'Card not found'
       });
       return;
+    }
+
+    if (req.user) {
+      const list = await listService.findById(card.listId);
+      if (list) {
+        await activityService.logActivity({
+          type: 'card_deleted',
+          description: `Deleted card "${card.title}"`,
+          userId: req.user.userId,
+          boardId: list.boardId,
+          listId: list.id,
+          cardId: card.id
+        });
+      }
     }
 
     res.status(200).json({
