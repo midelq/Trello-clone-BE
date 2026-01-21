@@ -28,7 +28,7 @@ export const getAllBoards = async (req: Request, res: Response): Promise<void> =
       res.status(200).json({
         boards: [],
         count: 0,
-        message: 'Ще не створено жодної дошки'
+        message: 'No boards created yet'
       });
       return;
     }
