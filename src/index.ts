@@ -12,6 +12,7 @@ import cardRoutes from './routes/card.routes';
 
 import { env } from './config/env';
 import morgan from 'morgan';
+import { StatusCodes } from 'http-status-codes';
 
 const app: Application = express();
 const PORT = env.PORT;
@@ -43,7 +44,6 @@ app.use(express.urlencoded({ extended: true }));
 if (env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 } else {
-  
   app.use(morgan('combined'));
 }
 
@@ -54,7 +54,7 @@ app.use('/api/lists', listRoutes);
 app.use('/api/cards', cardRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
@@ -100,7 +100,7 @@ app.get('/', (_req: Request, res: Response) => {
 
 // 404 handler
 app.use((req: Request, res: Response) => {
-  res.status(404).json({
+  res.status(StatusCodes.NOT_FOUND).json({
     error: 'Not Found',
     message: `Route ${req.url} not found`
   });
@@ -109,7 +109,7 @@ app.use((req: Request, res: Response) => {
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: any) => {
   console.error(err.stack);
-  res.status(500).json({
+  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
@@ -140,4 +140,3 @@ if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
 }
 
 export default app;
-

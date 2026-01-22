@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { cardService } from '../services/card.service';
+import { StatusCodes } from 'http-status-codes';
 
 import { activityService } from '../services/activity.service';
 import { listService } from '../services/list.service';
@@ -26,7 +27,7 @@ export const getCardsByList = async (req: Request, res: Response): Promise<void>
     const listId = parseInt(req.params.listId);
 
     if (isNaN(listId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid list ID'
       });
@@ -35,13 +36,13 @@ export const getCardsByList = async (req: Request, res: Response): Promise<void>
 
     const cards = await cardService.findByListId(listId);
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       cards,
       count: cards.length
     });
   } catch (error) {
     console.error('Get cards error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to get cards'
     });
@@ -54,7 +55,7 @@ export const getCardById = async (req: Request, res: Response): Promise<void> =>
     const cardId = parseInt(req.params.id);
 
     if (isNaN(cardId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid card ID'
       });
@@ -64,19 +65,19 @@ export const getCardById = async (req: Request, res: Response): Promise<void> =>
     const card = await cardService.findById(cardId);
 
     if (!card) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'Card not found'
       });
       return;
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       card
     });
   } catch (error) {
     console.error('Get card error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to get card'
     });
@@ -109,13 +110,13 @@ export const createCard = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    res.status(201).json({
+    res.status(StatusCodes.CREATED).json({
       message: 'Card created successfully',
       card: newCard
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -124,7 +125,7 @@ export const createCard = async (req: Request, res: Response): Promise<void> => 
     }
 
     console.error('Create card error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to create card'
     });
@@ -137,7 +138,7 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
     const cardId = parseInt(req.params.id);
 
     if (isNaN(cardId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid card ID'
       });
@@ -145,12 +146,6 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
     }
 
     const validatedData = updateCardSchema.parse(req.body);
-
-    // Get current card state before update to detect changes if needed
-    // But since we want to log the RESULT, we do it after.
-
-    // We ideally should know if it moved lists.
-    // Let's assume just 'card_updated' or 'card_moved' 
 
     const updatedCard = await cardService.update(cardId, {
       title: validatedData.title,
@@ -160,7 +155,7 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
     });
 
     if (!updatedCard) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'Card not found'
       });
@@ -173,9 +168,6 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
         let type: any = 'card_updated';
         let description = `Updated card "${updatedCard.title}"`;
 
-        // Simple check: if listId was provided in body, assume move (even if same listId, technically a move op was requested)
-        // Or better: check if we actually moved lists?
-        // We'd need old state. For now, let's just log as updated/moved based on input.
         if (validatedData.listId) {
           type = 'card_moved';
           description = `Moved card "${updatedCard.title}" to list "${list.title}"`;
@@ -192,13 +184,13 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       message: 'Card updated successfully',
       card: updatedCard
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -207,7 +199,7 @@ export const updateCard = async (req: Request, res: Response): Promise<void> => 
     }
 
     console.error('Update card error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to update card'
     });
@@ -220,7 +212,7 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
     const cardId = parseInt(req.params.id);
 
     if (isNaN(cardId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid card ID'
       });
@@ -233,7 +225,7 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
     const isDeleted = await cardService.delete(cardId);
 
     if (!isDeleted || !card) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'Card not found'
       });
@@ -254,12 +246,12 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       message: 'Card deleted successfully'
     });
   } catch (error) {
     console.error('Delete card error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to delete card'
     });

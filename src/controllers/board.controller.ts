@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { boardService } from '../services/board.service';
 import { asyncHandler } from '../utils/asyncHandler';
+import { StatusCodes } from 'http-status-codes';
 
 // Validation schemas (could be moved to schemas/board.schema.ts)
 const createBoardSchema = z.object({
@@ -15,7 +16,7 @@ const updateBoardSchema = z.object({
 // Get all boards for authenticated user
 export const getAllBoards = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
-    res.status(401).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       error: 'Unauthorized',
       message: 'User not authenticated'
     });
@@ -25,7 +26,7 @@ export const getAllBoards = asyncHandler(async (req: Request, res: Response) => 
   const boards = await boardService.findAllByOwner(req.user.userId);
 
   if (boards.length === 0) {
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       boards: [],
       count: 0,
       message: 'No boards created yet'
@@ -33,7 +34,7 @@ export const getAllBoards = asyncHandler(async (req: Request, res: Response) => 
     return;
   }
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     boards,
     count: boards.length
   });
@@ -41,7 +42,7 @@ export const getAllBoards = asyncHandler(async (req: Request, res: Response) => 
 
 export const getBoardById = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
-    res.status(401).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       error: 'Unauthorized',
       message: 'User not authenticated'
     });
@@ -51,7 +52,7 @@ export const getBoardById = asyncHandler(async (req: Request, res: Response) => 
   const boardId = parseInt(req.params.id);
 
   if (isNaN(boardId)) {
-    res.status(400).json({
+    res.status(StatusCodes.BAD_REQUEST).json({
       error: 'Bad Request',
       message: 'Invalid board ID'
     });
@@ -61,14 +62,14 @@ export const getBoardById = asyncHandler(async (req: Request, res: Response) => 
   const board = await boardService.findByIdAndOwner(boardId, req.user.userId);
 
   if (!board) {
-    res.status(404).json({
+    res.status(StatusCodes.NOT_FOUND).json({
       error: 'Not Found',
       message: 'Board not found or you do not have access'
     });
     return;
   }
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     board
   });
 });
@@ -76,7 +77,7 @@ export const getBoardById = asyncHandler(async (req: Request, res: Response) => 
 // Get full board with lists and cards
 export const getBoardFull = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
-    res.status(401).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       error: 'Unauthorized',
       message: 'User not authenticated'
     });
@@ -86,7 +87,7 @@ export const getBoardFull = asyncHandler(async (req: Request, res: Response) => 
   const boardId = parseInt(req.params.id);
 
   if (isNaN(boardId)) {
-    res.status(400).json({
+    res.status(StatusCodes.BAD_REQUEST).json({
       error: 'Bad Request',
       message: 'Invalid board ID'
     });
@@ -96,14 +97,14 @@ export const getBoardFull = asyncHandler(async (req: Request, res: Response) => 
   const board = await boardService.findFullByIdAndOwner(boardId, req.user.userId);
 
   if (!board) {
-    res.status(404).json({
+    res.status(StatusCodes.NOT_FOUND).json({
       error: 'Not Found',
       message: 'Board not found or you do not have access'
     });
     return;
   }
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     board
   });
 });
@@ -111,7 +112,7 @@ export const getBoardFull = asyncHandler(async (req: Request, res: Response) => 
 // Create new board
 export const createBoard = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
-    res.status(401).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       error: 'Unauthorized',
       message: 'User not authenticated'
     });
@@ -122,7 +123,7 @@ export const createBoard = asyncHandler(async (req: Request, res: Response) => {
 
   const newBoard = await boardService.create(validatedData.title, req.user.userId);
 
-  res.status(201).json({
+  res.status(StatusCodes.CREATED).json({
     message: 'Board created successfully',
     board: newBoard
   });
@@ -131,7 +132,7 @@ export const createBoard = asyncHandler(async (req: Request, res: Response) => {
 // Update board
 export const updateBoard = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
-    res.status(401).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       error: 'Unauthorized',
       message: 'User not authenticated'
     });
@@ -141,7 +142,7 @@ export const updateBoard = asyncHandler(async (req: Request, res: Response) => {
   const boardId = parseInt(req.params.id);
 
   if (isNaN(boardId)) {
-    res.status(400).json({
+    res.status(StatusCodes.BAD_REQUEST).json({
       error: 'Bad Request',
       message: 'Invalid board ID'
     });
@@ -153,14 +154,14 @@ export const updateBoard = asyncHandler(async (req: Request, res: Response) => {
   const updatedBoard = await boardService.update(boardId, req.user.userId, validatedData.title);
 
   if (!updatedBoard) {
-    res.status(404).json({
+    res.status(StatusCodes.NOT_FOUND).json({
       error: 'Not Found',
       message: 'Board not found or you do not have permission'
     });
     return;
   }
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     message: 'Board updated successfully',
     board: updatedBoard
   });
@@ -169,7 +170,7 @@ export const updateBoard = asyncHandler(async (req: Request, res: Response) => {
 // Delete board
 export const deleteBoard = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
-    res.status(401).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       error: 'Unauthorized',
       message: 'User not authenticated'
     });
@@ -179,7 +180,7 @@ export const deleteBoard = asyncHandler(async (req: Request, res: Response) => {
   const boardId = parseInt(req.params.id);
 
   if (isNaN(boardId)) {
-    res.status(400).json({
+    res.status(StatusCodes.BAD_REQUEST).json({
       error: 'Bad Request',
       message: 'Invalid board ID'
     });
@@ -189,14 +190,14 @@ export const deleteBoard = asyncHandler(async (req: Request, res: Response) => {
   const isDeleted = await boardService.delete(boardId, req.user.userId);
 
   if (!isDeleted) {
-    res.status(404).json({
+    res.status(StatusCodes.NOT_FOUND).json({
       error: 'Not Found',
       message: 'Board not found or you do not have permission'
     });
     return;
   }
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     message: 'Board deleted successfully'
   });
 });

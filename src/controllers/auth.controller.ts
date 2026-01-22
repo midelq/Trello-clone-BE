@@ -6,9 +6,7 @@ import { db } from '../db';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { emailService } from '../services/email.service';
-
-// Validation schemas
-import { registerSchema, loginSchema, changePasswordSchema } from '../schemas/auth.schema';
+import { StatusCodes } from 'http-status-codes';
 
 const generateToken = (userId: number, email: string, fullName: string): string => {
   const jwtSecret = process.env.JWT_SECRET;
@@ -22,6 +20,9 @@ const generateToken = (userId: number, email: string, fullName: string): string 
     { expiresIn: '1d' }
   );
 };
+// Validation schemas
+import { registerSchema, loginSchema, changePasswordSchema } from '../schemas/auth.schema';
+
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -34,7 +35,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       .limit(1);
 
     if (existingUser.length > 0) {
-      res.status(409).json({
+      res.status(StatusCodes.CONFLICT).json({
         error: 'Conflict',
         message: 'Email already exists'
       });
@@ -69,7 +70,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       // We don't throw error here to allow registration to succeed even if email fails
     }
 
-    res.status(201).json({
+    res.status(StatusCodes.CREATED).json({
       message: 'User registered successfully',
       user: {
         id: newUser[0].id,
@@ -81,7 +82,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -90,7 +91,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     console.error('Registration error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to register user'
     });
@@ -109,7 +110,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       .limit(1);
 
     if (user.length === 0) {
-      res.status(401).json({
+      res.status(StatusCodes.UNAUTHORIZED).json({
         error: 'Unauthorized',
         message: 'Invalid email or password'
       });
@@ -123,7 +124,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     );
 
     if (!isPasswordValid) {
-      res.status(401).json({
+      res.status(StatusCodes.UNAUTHORIZED).json({
         error: 'Unauthorized',
         message: 'Invalid email or password'
       });
@@ -133,7 +134,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Generate token
     const token = generateToken(user[0].id, user[0].email, user[0].fullName);
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       message: 'Login successful',
       user: {
         id: user[0].id,
@@ -145,7 +146,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -154,7 +155,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     console.error('Login error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to login'
     });
@@ -164,7 +165,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 export const me = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      res.status(401).json({
+      res.status(StatusCodes.UNAUTHORIZED).json({
         error: 'Unauthorized',
         message: 'User not authenticated'
       });
@@ -183,19 +184,19 @@ export const me = async (req: Request, res: Response): Promise<void> => {
       .limit(1);
 
     if (user.length === 0) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'User not found'
       });
       return;
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       user: user[0]
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to get user info'
     });
@@ -205,7 +206,7 @@ export const me = async (req: Request, res: Response): Promise<void> => {
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      res.status(401).json({
+      res.status(StatusCodes.UNAUTHORIZED).json({
         error: 'Unauthorized',
         message: 'User not authenticated'
       });
@@ -221,7 +222,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       .limit(1);
 
     if (user.length === 0) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'User not found'
       });
@@ -234,7 +235,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     );
 
     if (!isPasswordValid) {
-      res.status(401).json({
+      res.status(StatusCodes.UNAUTHORIZED).json({
         error: 'Unauthorized',
         message: 'Current password is incorrect'
       });
@@ -247,7 +248,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     );
 
     if (isSamePassword) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'New password must be different from current password'
       });
@@ -264,12 +265,12 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       })
       .where(eq(users.id, req.user.userId));
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       message: 'Password changed successfully'
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -278,7 +279,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     }
 
     console.error('Change password error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to change password'
     });

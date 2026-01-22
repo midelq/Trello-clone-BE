@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { listService } from '../services/list.service';
+import { StatusCodes } from 'http-status-codes';
 
 // Validation schemas
 const createListSchema = z.object({
@@ -22,7 +23,7 @@ export const getListsByBoard = async (req: Request, res: Response): Promise<void
     const boardId = parseInt(req.params.boardId);
 
     if (isNaN(boardId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid board ID'
       });
@@ -33,13 +34,13 @@ export const getListsByBoard = async (req: Request, res: Response): Promise<void
 
     const boardLists = await listService.findByBoardId(boardId);
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       lists: boardLists,
       count: boardLists.length
     });
   } catch (error) {
     console.error('Get lists error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to get lists'
     });
@@ -52,7 +53,7 @@ export const getListById = async (req: Request, res: Response): Promise<void> =>
     const listId = parseInt(req.params.id);
 
     if (isNaN(listId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid list ID'
       });
@@ -64,19 +65,19 @@ export const getListById = async (req: Request, res: Response): Promise<void> =>
     const list = await listService.findById(listId);
 
     if (!list) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'List not found'
       });
       return;
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       list
     });
   } catch (error) {
     console.error('Get list error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to get list'
     });
@@ -94,13 +95,13 @@ export const createList = async (req: Request, res: Response): Promise<void> => 
       position: validatedData.position
     });
 
-    res.status(201).json({
+    res.status(StatusCodes.CREATED).json({
       message: 'List created successfully',
       list: newList
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -109,7 +110,7 @@ export const createList = async (req: Request, res: Response): Promise<void> => 
     }
 
     console.error('Create list error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to create list'
     });
@@ -122,7 +123,7 @@ export const updateList = async (req: Request, res: Response): Promise<void> => 
     const listId = parseInt(req.params.id);
 
     if (isNaN(listId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid list ID'
       });
@@ -134,20 +135,20 @@ export const updateList = async (req: Request, res: Response): Promise<void> => 
     const updatedList = await listService.update(listId, validatedData);
 
     if (!updatedList) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'List not found'
       });
       return;
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       message: 'List updated successfully',
       list: updatedList
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Validation Error',
         message: 'Invalid input data',
         details: error.issues
@@ -156,7 +157,7 @@ export const updateList = async (req: Request, res: Response): Promise<void> => 
     }
 
     console.error('Update list error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to update list'
     });
@@ -169,7 +170,7 @@ export const deleteList = async (req: Request, res: Response): Promise<void> => 
     const listId = parseInt(req.params.id);
 
     if (isNaN(listId)) {
-      res.status(400).json({
+      res.status(StatusCodes.BAD_REQUEST).json({
         error: 'Bad Request',
         message: 'Invalid list ID'
       });
@@ -179,19 +180,19 @@ export const deleteList = async (req: Request, res: Response): Promise<void> => 
     const isDeleted = await listService.delete(listId);
 
     if (!isDeleted) {
-      res.status(404).json({
+      res.status(StatusCodes.NOT_FOUND).json({
         error: 'Not Found',
         message: 'List not found'
       });
       return;
     }
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       message: 'List deleted successfully'
     });
   } catch (error) {
     console.error('Delete list error:', error);
-    res.status(500).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: 'Internal Server Error',
       message: 'Failed to delete list'
     });
