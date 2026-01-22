@@ -13,6 +13,8 @@ import cardRoutes from './routes/card.routes';
 import { env } from './config/env';
 import morgan from 'morgan';
 import { StatusCodes } from 'http-status-codes';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger';
 
 const app: Application = express();
 const PORT = env.PORT;
@@ -46,6 +48,10 @@ if (env.NODE_ENV === 'development') {
 } else {
   app.use(morgan('combined'));
 }
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+console.log(`📄 Swagger documentation available at http://localhost:${PORT}/api-docs`);
 
 // Routes
 app.use('/api/auth', authRoutes);
