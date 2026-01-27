@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, me, changePassword } from '../controllers/auth.controller';
+import { register, login, logout, refresh, me, changePassword } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { authLimiter } from '../middleware/rateLimit.middleware';
 
@@ -75,7 +75,7 @@ router.post('/register', authLimiter, register);
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 accessToken:
  *                   type: string
  *                 user:
  *                   type: object
@@ -85,6 +85,47 @@ router.post('/register', authLimiter, register);
  *         description: Server error
  */
 router.post('/login', authLimiter, login);
+
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh access token using refresh token cookie
+ *     tags: [Auth]
+ *     description: Uses httpOnly cookie to get a new access token. Implements token rotation.
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *       401:
+ *         description: Invalid or expired refresh token
+ *       500:
+ *         description: Server error
+ */
+router.post('/refresh', refresh);
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user and invalidate refresh token
+ *     tags: [Auth]
+ *     description: Clears the refresh token from database and cookie
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *       500:
+ *         description: Server error
+ */
+router.post('/logout', logout);
 
 /**
  * @swagger

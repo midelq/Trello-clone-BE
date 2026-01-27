@@ -61,9 +61,21 @@ export const activities = pgTable('activities', {
   createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
+// Refresh tokens for secure token rotation
+export const refreshTokens = pgTable('refresh_tokens', {
+  id: serial('id').primaryKey(),
+  token: text('token').notNull().unique(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   boards: many(boards),
-  activities: many(activities)
+  activities: many(activities),
+  refreshTokens: many(refreshTokens)
 }));
 
 export const boardsRelations = relations(boards, ({ one, many }) => ({
@@ -125,4 +137,7 @@ export type NewCard = typeof cards.$inferInsert;
 
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
+
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 

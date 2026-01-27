@@ -3,6 +3,7 @@ dotenv.config();
 
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import authRoutes from './routes/auth.routes';
@@ -41,6 +42,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // Parse cookies for refresh token
 
 
 if (env.NODE_ENV === 'development') {
