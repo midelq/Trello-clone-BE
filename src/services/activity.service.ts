@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { activities, boards, lists } from '../db/schema'; 
+import { activities } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export type ActivityType =
@@ -10,7 +10,7 @@ export type ActivityType =
     | 'list_updated'
     | 'list_deleted'
     | 'card_created'
-    | 'card_moved' 
+    | 'card_moved'
     | 'card_updated'
     | 'card_deleted';
 
@@ -30,9 +30,9 @@ export class ActivityService {
         return db.select()
             .from(activities)
             .where(eq(activities.boardId, boardId))
-            .orderBy(activities.createdAt) 
-            .limit(limit); 
-      
+            .orderBy(activities.createdAt)
+            .limit(limit);
+
     }
 }
 

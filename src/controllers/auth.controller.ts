@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { db } from '../db';
 import { users, refreshTokens } from '../db/schema';
-import { eq, and, lt } from 'drizzle-orm';
+import { eq, lt } from 'drizzle-orm';
 import { emailService } from '../services/email.service';
 import { StatusCodes } from 'http-status-codes';
 
